@@ -6,6 +6,7 @@ from dj_rest_auth.views import (
     PasswordResetView,
 )
 from django.conf import settings
+from rest_framework_simplejwt.views import TokenRefreshView
 
 
 from django.conf.urls.static import static
@@ -23,6 +24,12 @@ urlpatterns = [
     path("api/user/orders/", include("orders.urls", namespace="orders")),
     path("api/user/payments/", include("payment.urls", namespace="payment")),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+    
+    # JWT Authentication URLs
+    path("api/auth/", include("dj_rest_auth.urls")),
+    path("api/token/", include("dj_rest_auth.urls")),
+    path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    
     path(
         "resend-email/", ResendEmailVerificationView.as_view(), name="rest_resend_email"
     ),
@@ -50,10 +57,12 @@ urlpatterns = [
 # Media Assets
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-
-
-# Schema URLs
+# Schema and API documentation
 urlpatterns += [
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path(
+        "api/docs/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
 ]

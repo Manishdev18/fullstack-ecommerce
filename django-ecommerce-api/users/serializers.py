@@ -28,14 +28,16 @@ class UserRegistrationSerializer(RegisterSerializer):
     phone_number = PhoneNumberField(
         required=False,
         write_only=True,
+    )
+    email = serializers.EmailField(
+        required=False,
         validators=[
             UniqueValidator(
-                queryset=PhoneNumber.objects.all(),
-                message=_("A user is already registered with this phone number."),
+                queryset=User.objects.all(),
+                message=_("A user is already registered with this email address."),
             )
         ],
     )
-    email = serializers.EmailField(required=False)
 
     def validate(self, validated_data):
         email = validated_data.get("email", None)
@@ -71,6 +73,14 @@ class UserRegistrationSerializer(RegisterSerializer):
 
     def custom_signup(self, request, user):
         self.create_extra(user, self.get_cleaned_data_extra())
+
+    def validate_phone_number(self, value):
+        """Custom validation for phone number uniqueness"""
+        if value and PhoneNumber.objects.filter(phone_number=value).exists():
+            raise serializers.ValidationError(
+                _("A user is already registered with this phone number.")
+            )
+        return value
 
 
 class UserLoginSerializer(serializers.Serializer):

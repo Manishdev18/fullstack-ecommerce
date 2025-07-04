@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import timedelta
 
 from decouple import Csv, config
 
@@ -31,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     "rest_framework",
     "rest_framework.authtoken",
+    "rest_framework_simplejwt",  # JWT Bearer token support
     "dj_rest_auth",
     "allauth",
     "allauth.account",
@@ -51,9 +53,10 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.cache.UpdateCacheMiddleware",
+    # Temporarily disable caching middleware to prevent caching issues
+    # "django.middleware.cache.UpdateCacheMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.cache.FetchFromCacheMiddleware",
+    # "django.middleware.cache.FetchFromCacheMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -90,17 +93,9 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",  # noqa
-    },
+    
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -124,6 +119,34 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ORIGIN_ALLOW_ALL = True
 
+# Additional CORS settings for better compatibility
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'cache-control',
+    'content-type',
+    'dnt',
+    'origin',
+    'pragma',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
 # Authentication
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",  # Default backend for admin
@@ -133,7 +156,8 @@ AUTHENTICATION_BACKENDS = [
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",  # Bearer token support
+        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",  # Cookie-based JWT
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
@@ -145,6 +169,34 @@ REST_USE_JWT = True
 JWT_AUTH_COOKIE = "phonenumber-auth"
 JWT_AUTH_REFRESH_COOKIE = "phonenumber-refresh-token"
 
+# JWT Settings for Bearer Token Authentication
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    'JWK_URL': None,
+    'LEEWAY': 0,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
+    'JTI_CLAIM': 'jti',
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=60),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),
+}
+
 # ACCOUNT_EMAIL_VERIFICATION SETTINGS
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
@@ -152,16 +204,20 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 
-# Email
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = config("EMAIL_USER")
-EMAIL_HOST_PASSWORD = config("EMAIL_PASSWORD")
+# Email - Temporarily commented out due to SMTP starttls() error
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "smtp.gmail.com"
+# EMAIL_USE_TLS = True
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = config("EMAIL_USER")
+# EMAIL_HOST_PASSWORD = config("EMAIL_PASSWORD")
+
+# Use console backend for development (emails will be printed to console)
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Phone number field
-PHONENUMBER_DEFAULT_REGION = "ET"
+PHONENUMBER_DEFAULT_REGION = "IN"
+PHONENUMBER_DEFAULT_FORMAT = "NATIONAL"
 
 # Token length for OTP
 TOKEN_LENGTH = 6

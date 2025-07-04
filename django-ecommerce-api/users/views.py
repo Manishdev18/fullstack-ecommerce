@@ -12,6 +12,7 @@ from rest_framework.generics import (
 )
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import Address, PhoneNumber, Profile
 from users.permissions import IsUserAddressOwner, IsUserProfileOwner
@@ -36,40 +37,81 @@ class UserRegisterationAPIView(RegisterView):
     serializer_class = UserRegistrationSerializer
 
     def create(self, request, *args, **kwargs):
+        print("request.data", request.data)
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        print("serializer.is_valid():", serializer.is_valid())
+        if not serializer.is_valid():
+            print("serializer.errors:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
 
-        response_data = ""
+        response_data = {"detail": _("User registered successfully.")}
 
-        email = request.data.get("email", None)
-        phone_number = request.data.get("phone_number", None)
+        # TODO: Temporarily commented out email and phone number verification
+        # email = request.data.get("email", None)
+        # phone_number = request.data.get("phone_number", None)
 
-        if email and phone_number:
-            res = SendOrResendSMSAPIView.as_view()(request._request, *args, **kwargs)
+        # if email and phone_number:
+        #     res = SendOrResendSMSAPIView.as_view()(request._request, *args, **kwargs)
 
-            if res.status_code == 200:
-                response_data = {"detail": _("Verification e-mail and SMS sent.")}
+        #     if res.status_code == 200:
+        #         response_data = {"detail": _("Verification e-mail and SMS sent.")}
 
-        elif email and not phone_number:
-            response_data = {"detail": _("Verification e-mail sent.")}
+        # elif email and not phone_number:
+        #     response_data = {"detail": _("Verification e-mail sent.")}
 
-        else:
-            res = SendOrResendSMSAPIView.as_view()(request._request, *args, **kwargs)
+        # else:
+        #     res = SendOrResendSMSAPIView.as_view()(request._request, *args, **kwargs)
 
-            if res.status_code == 200:
-                response_data = {"detail": _("Verification SMS sent.")}
+        #     if res.status_code == 200:
+        #         response_data = {"detail": _("Verification SMS sent.")}
 
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
 
-class UserLoginAPIView(LoginView):
+class UserLoginAPIView(GenericAPIView):
     """
     Authenticate existing users using phone number or email and password.
+    Returns JWT tokens that can be used as Bearer tokens.
     """
 
     serializer_class = UserLoginSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            
+            # Generate JWT tokens using rest_framework_simplejwt
+            refresh = RefreshToken.for_user(user)
+            access = refresh.access_token
+            
+            # Add custom claims if needed
+            access['email'] = user.email
+            access['first_name'] = user.first_name
+            access['last_name'] = user.last_name
+            if hasattr(user, 'phone') and user.phone:
+                access['phone_number'] = str(user.phone.phone_number)
+            
+            data = {
+                'access': str(access),
+                'refresh': str(refresh),
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'phone_number': str(user.phone.phone_number) if hasattr(user, 'phone') and user.phone else None,
+                    'is_active': user.is_active,
+                    'date_joined': user.date_joined.isoformat(),
+                }
+            }
+            
+            return Response(data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SendOrResendSMSAPIView(GenericAPIView):

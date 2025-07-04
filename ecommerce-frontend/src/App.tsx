@@ -32,8 +32,12 @@ import CategoryProducts from './pages/CategoryProducts';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: 0,
       refetchOnWindowFocus: false,
+      staleTime: 0,
+      cacheTime: 0,
+      refetchOnMount: true,
+      refetchOnReconnect: false,
     },
   },
 });

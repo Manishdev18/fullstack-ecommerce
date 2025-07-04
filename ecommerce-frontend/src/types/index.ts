@@ -87,6 +87,7 @@ export interface Payment {
 export interface LoginData {
   email?: string;
   phone_number?: string;
+  country_code?: string;
   password: string;
 }
 
@@ -95,6 +96,7 @@ export interface RegisterData {
   first_name: string;
   last_name: string;
   phone_number?: string;
+  country_code?: string;
   password: string;
   password_confirm: string;
 }
@@ -105,9 +107,24 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+// Cart related types for Django API
 export interface CartItem {
+  id: number;
   product: Product;
   quantity: number;
+  total_price: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Cart {
+  id: number;
+  user: string;
+  cart_items: CartItem[];
+  total_cost: number;
+  total_items: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CheckoutData {

@@ -22,6 +22,8 @@ const Products: React.FC = () => {
     }).then(res => res.data),
     {
       refetchOnWindowFocus: false,
+      staleTime: 0,
+      cacheTime: 0,
     }
   );
 
@@ -30,6 +32,8 @@ const Products: React.FC = () => {
     () => productsAPI.getCategories().then(res => res.data),
     {
       refetchOnWindowFocus: false,
+      staleTime: 0,
+      cacheTime: 0,
     }
   );
 

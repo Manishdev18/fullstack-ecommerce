@@ -12,7 +12,7 @@ import {
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
-  const { getCartCount } = useCart();
+  const { getCartCount, refreshCart } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,6 +27,12 @@ const Navbar: React.FC = () => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleCartClick = () => {
+    if (isAuthenticated) {
+      refreshCart();
     }
   };
 
@@ -72,7 +78,11 @@ const Navbar: React.FC = () => {
             </Link>
             
             {/* Cart */}
-            <Link to="/cart" className="relative text-gray-700 hover:text-blue-600 transition-colors">
+            <Link 
+              to="/cart" 
+              className="relative text-gray-700 hover:text-blue-600 transition-colors"
+              onClick={handleCartClick}
+            >
               <ShoppingCartIcon className="h-6 w-6" />
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -199,7 +209,10 @@ const Navbar: React.FC = () => {
               <Link
                 to="/cart"
                 className="block px-3 py-2 text-gray-700 hover:text-blue-600"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  handleCartClick();
+                }}
               >
                 Cart ({cartCount})
               </Link>

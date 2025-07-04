@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../types';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 import { ShoppingCartIcon } from '@heroicons/react/24/outline';
 
 interface ProductCardProps {
@@ -10,10 +11,22 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
+  const [isAdding, setIsAdding] = useState(false);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
-    addToCart(product);
+    
+    if (!isAuthenticated) {
+      return;
+    }
+    
+    setIsAdding(true);
+    try {
+      await addToCart(product);
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   return (
@@ -51,11 +64,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           
           <button
             onClick={handleAddToCart}
-            disabled={product.quantity === 0}
+            disabled={product.quantity === 0 || isAdding || !isAuthenticated}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center space-x-2"
           >
             <ShoppingCartIcon className="h-5 w-5" />
-            <span>Add to Cart</span>
+            <span>
+              {isAdding ? 'Adding...' : !isAuthenticated ? 'Login to Buy' : 'Add to Cart'}
+            </span>
           </button>
         </div>
         

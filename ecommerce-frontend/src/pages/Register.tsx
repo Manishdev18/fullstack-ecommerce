@@ -14,7 +14,11 @@ const Register: React.FC = () => {
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<RegisterData>();
+  } = useForm<RegisterData>({
+    defaultValues: {
+      country_code: '+91'
+    }
+  });
 
   const password = watch('password');
 
@@ -27,7 +31,23 @@ const Register: React.FC = () => {
   const onSubmit = async (data: RegisterData) => {
     setLoading(true);
     try {
-      await registerUser(data);
+      // Transform the data to match backend expectations
+      const { password, password_confirm, country_code, phone_number, ...otherData } = data;
+      
+      // Combine country code with phone number if both are provided
+      let formattedPhoneNumber = phone_number;
+      if (phone_number && country_code) {
+        formattedPhoneNumber = `${country_code}${phone_number}`;
+      }
+      
+      const registrationData = {
+        ...otherData,
+        phone_number: formattedPhoneNumber,
+        password1: password,
+        password2: password_confirm,
+      };
+      
+      await registerUser(registrationData as any);
       navigate('/login');
     } catch (error) {
       console.error('Registration failed:', error);
@@ -130,19 +150,71 @@ const Register: React.FC = () => {
               <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700">
                 Phone Number (Optional)
               </label>
-              <div className="mt-1">
+              <div className="mt-1 flex rounded-md shadow-sm">
+                <select
+                  {...register('country_code')}
+                  className="inline-flex items-center px-3 py-2 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm"
+                >
+                  <option value="+91">🇮🇳 +91</option>
+                  <option value="+977">🇳🇵 +977</option>
+                </select>
                 <input
                   id="phone_number"
                   type="tel"
                   autoComplete="tel"
-                  {...register('phone_number')}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Enter your phone number"
+                  {...register('phone_number', {
+                    pattern: {
+                      value: /^[6-9]\d{9}$/,
+                      message: 'Please enter a valid phone number (10 digits starting with 6-9)',
+                    },
+                    validate: (value, formValues) => {
+                      if (!value) return true; // Optional field
+                      
+                      const countryCode = formValues.country_code || '+91';
+                      
+                      // Remove any non-digit characters
+                      const cleanValue = value.replace(/[^\d]/g, '');
+                      
+                      // Validate based on country code
+                      if (countryCode === '+91') {
+                        // Indian number validation (10 digits starting with 6-9)
+                        if (cleanValue.match(/^[6-9]\d{9}$/)) {
+                          return true;
+                        }
+                        return 'Please enter a valid Indian phone number (10 digits starting with 6-9)';
+                      } else if (countryCode === '+977') {
+                        // Nepal number validation (10 digits starting with 98)
+                        if (cleanValue.match(/^98\d{8}$/)) {
+                          return true;
+                        }
+                        return 'Please enter a valid Nepal phone number (10 digits starting with 98)';
+                      }
+                      
+                      return 'Please enter a valid phone number';
+                    },
+                  })}
+                  className="flex-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-r-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="Enter phone number"
+                  onInput={(e) => {
+                    const target = e.target as HTMLInputElement;
+                    // Remove any non-digit characters
+                    let value = target.value.replace(/[^\d]/g, '');
+                    
+                    // Limit to 10 digits
+                    if (value.length > 10) {
+                      value = value.slice(0, 10);
+                    }
+                    
+                    target.value = value;
+                  }}
                 />
-                {errors.phone_number && (
-                  <p className="mt-2 text-sm text-red-600">{errors.phone_number.message}</p>
-                )}
               </div>
+              {errors.phone_number && (
+                <p className="mt-2 text-sm text-red-600">{errors.phone_number.message}</p>
+              )}
+              <p className="mt-1 text-sm text-gray-500">
+                Select country code and enter phone number (India: 10 digits starting with 6-9, Nepal: 10 digits starting with 98)
+              </p>
             </div>
 
             {/* Password */}

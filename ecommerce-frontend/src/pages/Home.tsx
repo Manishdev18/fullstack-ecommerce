@@ -10,7 +10,9 @@ const Home: React.FC = () => {
     'featuredProducts',
     () => api.get('/api/products/?featured=true').then((res: any) => res.data.results || res.data),
     {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      // No caching - always fetch fresh data
+      staleTime: 0,
+      cacheTime: 0,
     }
   );
 

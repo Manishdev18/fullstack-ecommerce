@@ -1,15 +1,20 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { CartItem, Product } from '../types';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { CartItem, Product, Cart } from '../types';
+import { cartAPI } from '../services/api';
+import { useAuth } from './AuthContext';
 import { toast } from 'react-toastify';
 
 interface CartContextType {
+  cart: Cart | null;
   cartItems: CartItem[];
-  addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
-  clearCart: () => void;
+  addToCart: (product: Product, quantity?: number) => Promise<void>;
+  removeFromCart: (itemId: number) => Promise<void>;
+  updateQuantity: (itemId: number, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   getCartTotal: () => number;
   getCartCount: () => number;
+  loading: boolean;
+  refreshCart: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -27,103 +32,134 @@ interface CartProviderProps {
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<Cart | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
 
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      try {
-        setCartItems(JSON.parse(savedCart));
-      } catch (error) {
-        console.error('Failed to load cart from localStorage:', error);
+  const refreshCart = useCallback(async () => {
+    if (!isAuthenticated) return;
+    
+    setLoading(true);
+    try {
+      const response = await cartAPI.getCart();
+      setCart(response.data);
+    } catch (error: any) {
+      console.error('Failed to load cart:', error);
+      if (error.response?.status !== 404) {
+        toast.error('Failed to load cart');
       }
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
-  // Save cart to localStorage whenever it changes
+  // Load cart from API when user is authenticated
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+    if (isAuthenticated) {
+      refreshCart();
+    } else {
+      setCart(null);
+    }
+  }, [isAuthenticated, refreshCart]);
 
-  const addToCart = (product: Product, quantity: number = 1) => {
-    setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.product.id === product.id);
-      
-      if (existingItem) {
-        // Update quantity if item already exists
-        const newQuantity = existingItem.quantity + quantity;
-        if (newQuantity <= product.quantity) {
-          toast.success(`Updated ${product.name} quantity in cart`);
-          return prevItems.map(item =>
-            item.product.id === product.id
-              ? { ...item, quantity: newQuantity }
-              : item
-          );
-        } else {
-          toast.error(`Only ${product.quantity} items available in stock`);
-          return prevItems;
-        }
-      } else {
-        // Add new item
-        if (quantity <= product.quantity) {
-          toast.success(`Added ${product.name} to cart`);
-          return [...prevItems, { product, quantity }];
-        } else {
-          toast.error(`Only ${product.quantity} items available in stock`);
-          return prevItems;
-        }
-      }
-    });
-  };
-
-  const removeFromCart = (productId: number) => {
-    setCartItems(prevItems => {
-      const item = prevItems.find(item => item.product.id === productId);
-      if (item) {
-        toast.success(`Removed ${item.product.name} from cart`);
-      }
-      return prevItems.filter(item => item.product.id !== productId);
-    });
-  };
-
-  const updateQuantity = (productId: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
+  const addToCart = async (product: Product, quantity: number = 1) => {
+    if (!isAuthenticated) {
+      toast.error('Please login to add items to cart');
       return;
     }
 
-    setCartItems(prevItems =>
-      prevItems.map(item => {
-        if (item.product.id === productId) {
-          if (quantity <= item.product.quantity) {
-            return { ...item, quantity };
-          } else {
-            toast.error(`Only ${item.product.quantity} items available in stock`);
-            return item;
-          }
-        }
-        return item;
-      })
-    );
+    setLoading(true);
+    try {
+      const response = await cartAPI.addToCart(product.id, quantity);
+      setCart(response.data);
+      toast.success(`Added ${product.name} to cart`);
+    } catch (error: any) {
+      console.error('Failed to add to cart:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to add item to cart';
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const clearCart = () => {
-    setCartItems([]);
-    toast.success('Cart cleared');
+  const removeFromCart = async (itemId: number) => {
+    if (!isAuthenticated) {
+      toast.error('Please login to manage cart');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await cartAPI.removeFromCart(itemId);
+      setCart(response.data);
+      toast.success('Item removed from cart');
+    } catch (error: any) {
+      console.error('Failed to remove from cart:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to remove item from cart';
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateQuantity = async (itemId: number, quantity: number) => {
+    if (!isAuthenticated) {
+      toast.error('Please login to manage cart');
+      return;
+    }
+
+    if (quantity <= 0) {
+      await removeFromCart(itemId);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await cartAPI.updateCartItem(itemId, quantity);
+      setCart(response.data);
+      toast.success('Cart updated');
+    } catch (error: any) {
+      console.error('Failed to update cart:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to update cart item';
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearCart = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to manage cart');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await cartAPI.clearCart();
+      setCart(response.data);
+      toast.success('Cart cleared');
+    } catch (error: any) {
+      console.error('Failed to clear cart:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to clear cart';
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getCartTotal = () => {
-    return cartItems.reduce((total, item) => {
-      return total + (parseFloat(item.product.price) * item.quantity);
-    }, 0);
+    return cart?.total_cost || 0;
   };
 
   const getCartCount = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
+    return cart?.total_items || 0;
   };
 
+  // Get cart items for backward compatibility
+  const cartItems = cart?.cart_items || [];
+
   const value = {
+    cart,
     cartItems,
     addToCart,
     removeFromCart,
@@ -131,6 +167,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     clearCart,
     getCartTotal,
     getCartCount,
+    loading,
+    refreshCart,
   };
 
   return (
