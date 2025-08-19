@@ -121,16 +121,20 @@ class UserLoginSerializer(serializers.Serializer):
         if not user.is_active:
             raise AccountDisabledException()
 
-        if email:
-            email_address = user.emailaddress_set.filter(
-                email=user.email, verified=True
-            ).exists()
-            if not email_address:
-                raise serializers.ValidationError(_("E-mail is not verified."))
+        # Skip email/phone verification in development
+        from django.conf import settings
+        
+        if not settings.DEBUG:  # Only enforce verification in production
+            if email:
+                email_address = user.emailaddress_set.filter(
+                    email=user.email, verified=True
+                ).exists()
+                if not email_address:
+                    raise serializers.ValidationError(_("E-mail is not verified."))
 
-        else:
-            if not user.phone.is_verified:
-                raise serializers.ValidationError(_("Phone number is not verified."))
+            else:
+                if not user.phone.is_verified:
+                    raise serializers.ValidationError(_("Phone number is not verified."))
 
         validated_data["user"] = user
         return validated_data

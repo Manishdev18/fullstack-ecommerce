@@ -37,17 +37,15 @@ class UserRegisterationAPIView(RegisterView):
     serializer_class = UserRegistrationSerializer
 
     def create(self, request, *args, **kwargs):
-        print("request.data", request.data)
         serializer = self.get_serializer(data=request.data)
-        print("serializer.is_valid():", serializer.is_valid())
         if not serializer.is_valid():
-            print("serializer.errors:", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
 
         response_data = {"detail": _("User registered successfully.")}
+        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
         # TODO: Temporarily commented out email and phone number verification
         # email = request.data.get("email", None)
@@ -68,7 +66,7 @@ class UserRegisterationAPIView(RegisterView):
         #     if res.status_code == 200:
         #         response_data = {"detail": _("Verification SMS sent.")}
 
-        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 
 class UserLoginAPIView(GenericAPIView):
@@ -81,6 +79,10 @@ class UserLoginAPIView(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+        print("request.data:", request.data)
+        print("serializer.is_valid():", serializer.is_valid())
+        if not serializer.is_valid():
+            print("serializer.errors:", serializer.errors)
         if serializer.is_valid():
             user = serializer.validated_data['user']
             

@@ -56,10 +56,27 @@ class ProductReadSerializer(serializers.ModelSerializer):
 
     seller = serializers.CharField(source="seller.get_full_name", read_only=True)
     category = serializers.CharField(source="category.name", read_only=True)
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = "__all__"
+    
+    def get_image(self, obj):
+        """
+        Return the image URL, handling both local files and external URLs
+        """
+        if obj.image:
+            image_str = str(obj.image)
+            # Check if it's already a full URL
+            if image_str.startswith('http://') or image_str.startswith('https://'):
+                return image_str
+            # Otherwise, build the full URL for local files
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
 
 
 class ProductWriteSerializer(serializers.ModelSerializer):
