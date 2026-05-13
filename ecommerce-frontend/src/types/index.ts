@@ -34,16 +34,18 @@ export interface Address {
 export interface ProductCategory {
   id: number;
   name: string;
-  icon?: string;
+  parent: number | null;
+  icon?: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface Product {
   id: number;
-  seller: number;
+  seller: string;
   category: ProductCategory;
   name: string;
+  local_name?: string;
   desc: string;
   image?: string;
   price: string;

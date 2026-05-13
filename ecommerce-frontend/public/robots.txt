@@ -1,0 +1,7 @@
+# Replace https://YOUR_PRODUCTION_DOMAIN with your live site (no trailing slash), then redeploy.
+# Example: https://shop.piora.com
+
+User-agent: *
+Allow: /
+
+Sitemap: https://YOUR_PRODUCTION_DOMAIN/sitemap.xml

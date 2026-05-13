@@ -1,90 +1,76 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useRootCategories } from '../hooks/useRootCategories';
 
 const Footer: React.FC = () => {
+  const { catalogSentence, isLoading } = useRootCategories(60_000);
+
+  const catalogBlurb = isLoading
+    ? 'Loading catalog…'
+    : catalogSentence
+      ? `${catalogSentence}. Quality you can trace, pricing you can read, and service you can count on.`
+      : 'PiOra — add root categories in your catalog to describe your range here.';
+
   return (
-    <footer className="bg-gray-800 text-white py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Company Info */}
+    <footer className="border-t border-piora-border bg-piora-cream py-10 text-piora-ink">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div>
-            <h3 className="text-lg font-bold mb-4">EcomStore</h3>
-            <p className="text-gray-300 text-sm">
-              Your one-stop shop for all your needs. Quality products, great prices, and excellent customer service.
-            </p>
+            <h3 className="font-display text-lg font-bold text-piora-forest">PiOra</h3>
+            <p className="mt-2 text-sm text-piora-forest/85">{catalogBlurb}</p>
           </div>
 
-          {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2 text-sm">
+            <h4 className="font-semibold text-piora-forest">Quick links</h4>
+            <ul className="mt-3 space-y-2 text-sm">
               <li>
-                <Link to="/" className="text-gray-300 hover:text-white transition-colors">
+                <Link to="/" className="text-piora-forest/80 hover:text-piora-leaf">
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/products" className="text-gray-300 hover:text-white transition-colors">
+                <Link to="/products" className="text-piora-forest/80 hover:text-piora-leaf">
                   Products
                 </Link>
               </li>
               <li>
-                <Link to="/categories" className="text-gray-300 hover:text-white transition-colors">
+                <Link to="/categories" className="text-piora-forest/80 hover:text-piora-leaf">
                   Categories
                 </Link>
               </li>
               <li>
-                <Link to="/cart" className="text-gray-300 hover:text-white transition-colors">
+                <Link to="/cart" className="text-piora-forest/80 hover:text-piora-leaf">
                   Cart
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Customer Service */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Customer Service</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  Contact Us
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  FAQ
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  Shipping Info
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  Returns
-                </a>
-              </li>
+            <h4 className="font-semibold text-piora-forest">Customer service</h4>
+            <ul className="mt-3 space-y-2 text-sm text-piora-forest/80">
+              <li>Contact us</li>
+              <li>FAQ</li>
+              <li>Shipping</li>
+              <li>Returns</li>
             </ul>
           </div>
 
-          {/* Contact */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Contact</h4>
-            <div className="space-y-2 text-sm text-gray-300">
-              <p>Email: support@ecomstore.com</p>
-              <p>Phone: (555) 123-4567</p>
-              <p>Address: 123 Main St, City, State 12345</p>
+            <h4 className="font-semibold text-piora-forest">Contact</h4>
+            <div className="mt-3 space-y-2 text-sm text-piora-forest/80">
+              <p>Email: support@piora.example</p>
+              <p>We reply during business hours.</p>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-300">
-          <p>&copy; 2024 EcomStore. All rights reserved.</p>
+        <div className="mt-10 border-t border-piora-border/80 pt-6 text-center text-sm text-piora-forest/70">
+          <p>&copy; {new Date().getFullYear()} PiOra. All rights reserved.</p>
         </div>
       </div>
     </footer>
   );
 };
 
-export default Footer; 
+export default Footer;

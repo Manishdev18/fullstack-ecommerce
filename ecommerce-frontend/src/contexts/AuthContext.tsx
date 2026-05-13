@@ -15,6 +15,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (data: LoginData) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -152,6 +153,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async (idToken: string) => {
+    try {
+      const response = await authAPI.googleLogin(idToken);
+      const { access, refresh, user } = response.data;
+      setTokens(access, refresh);
+      setUser(user);
+      toast.success('Signed in with Google');
+    } catch (error: any) {
+      console.error('Google login failed:', error);
+      const data = error.response?.data;
+      const errorMessage =
+        (typeof data?.detail === 'string' && data.detail) ||
+        (typeof data?.error === 'string' && data.error) ||
+        'Google sign-in failed';
+      toast.error(errorMessage);
+      throw error;
+    }
+  };
+
   const register = async (data: RegisterData) => {
     try {
       await authAPI.register(data);
@@ -207,6 +227,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     loading,
     login,
+    loginWithGoogle,
     register,
     logout,
     refreshUser,

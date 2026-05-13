@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
@@ -37,12 +38,49 @@ class ProductCategoryViewSet(viewsets.ModelViewSet):
 
 class ProductViewSet(ReadOnlyModelViewSet):
     """
-    List and retrieve products - Public access, no authentication required
+    List and retrieve products — requires authentication (Bearer JWT).
     """
 
-    queryset = Product.objects.all()
+    queryset = Product.objects.select_related("category", "category__parent", "seller")
     serializer_class = ProductReadSerializer
-    permission_classes = [AllowAny]  # Public access for product listing
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        search = (self.request.query_params.get("search") or "").strip()
+        if search:
+            qs = qs.filter(
+                Q(name__icontains=search)
+                | Q(local_name__icontains=search)
+                | Q(desc__icontains=search)
+            )
+
+        category_id = self.request.query_params.get("category")
+        if category_id:
+            try:
+                cid = int(category_id)
+            except (TypeError, ValueError):
+                cid = None
+            if cid is not None:
+                try:
+                    cat = ProductCategory.objects.get(pk=cid)
+                except ProductCategory.DoesNotExist:
+                    qs = qs.none()
+                else:
+                    if cat.parent_id is None:
+                        qs = qs.filter(
+                            Q(category_id=cat.id) | Q(category__parent_id=cat.id)
+                        )
+                    else:
+                        qs = qs.filter(category_id=cat.id)
+
+        ordering = self.request.query_params.get("ordering")
+        allowed = {"name", "-name", "price", "-price", "created_at", "-created_at"}
+        if ordering in allowed:
+            qs = qs.order_by(ordering)
+
+        return qs
 
 
 class CartViewSet(viewsets.GenericViewSet):

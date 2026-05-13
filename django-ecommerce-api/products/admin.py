@@ -21,7 +21,21 @@ class CartItemAdmin(admin.ModelAdmin):
     search_fields = ('product__name', 'cart__user__email')
 
 
-admin.site.register(ProductCategory)
-admin.site.register(Product)
+class ProductCategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "parent", "created_at")
+    list_filter = ("parent",)
+    search_fields = ("name",)
+
+
+admin.site.register(ProductCategory, ProductCategoryAdmin)
+
+
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ("name", "local_name", "category", "price", "quantity", "seller")
+    list_filter = ("category",)
+    search_fields = ("name", "local_name", "desc")
+
+
+admin.site.register(Product, ProductAdmin)
 admin.site.register(Cart, CartAdmin)
 admin.site.register(CartItem, CartItemAdmin)

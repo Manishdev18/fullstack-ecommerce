@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { LoginData, RegisterData, Address, CheckoutData } from '../types';
+import { LoginData, RegisterData, Address, CheckoutData, Product, ProductCategory } from '../types';
 import { getTokens, setTokens, clearTokens } from '../utils/auth';
 
 /**
@@ -12,16 +12,16 @@ import { getTokens, setTokens, clearTokens } from '../utils/auth';
  * Authentication Flow:
  * - Bearer tokens are automatically added to authenticated requests
  * - Token refresh is handled automatically when tokens expire
- * - Public endpoints (product listing, login, register) don't require authentication
+ * - Public endpoints (login, register) don't require authentication
+ * - Product listing, detail, and categories require authentication (Bearer JWT)
  * - All cart, order, payment, and profile endpoints require authentication
  * 
  * Public APIs (no Bearer token):
- * - Product listing and details
- * - Product categories
  * - User login and registration
  * - Password reset
  * 
  * Authenticated APIs (Bearer token required):
+ * - Product listing, details, and categories
  * - All cart operations (get, add, update, remove, clear)
  * - All order operations
  * - All payment operations
@@ -30,6 +30,15 @@ import { getTokens, setTokens, clearTokens } from '../utils/auth';
  */
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000/';
+
+/** Absolute URL for relative media paths from the API. */
+export function resolveApiMediaUrl(path?: string | null): string | undefined {
+  if (!path) return undefined;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const base = API_BASE_URL.replace(/\/$/, '');
+  const p = path.startsWith('/') ? path : `/${path}`;
+  return `${base}${p}`;
+}
 
 // Authenticated API instance - sends Bearer token
 const api = axios.create({
@@ -114,10 +123,28 @@ api.interceptors.response.use(
   }
 );
 
+/** Normalize DRF list responses: bare array or paginated `{ results: [...] }`. */
+export function extractListData<T>(data: unknown): T[] {
+  if (Array.isArray(data)) {
+    return data as T[];
+  }
+  if (
+    data &&
+    typeof data === 'object' &&
+    'results' in data &&
+    Array.isArray((data as { results: unknown }).results)
+  ) {
+    return (data as { results: T[] }).results;
+  }
+  return [];
+}
+
 // Auth API - Requires authentication for most endpoints
 export const authAPI = {
   login: (data: LoginData) => publicApi.post('/api/user/login/', data), // Public
   register: (data: RegisterData) => publicApi.post('/api/user/register/', data), // Public
+  googleLogin: (idToken: string) =>
+    publicApi.post('/api/user/login/google/', { id_token: idToken }),
   logout: () => api.post('/api/user/logout/'), // Authenticated
   getProfile: () => api.get('/api/user/'), // Authenticated
   updateProfile: (data: any) => api.put('/api/user/profile/', data), // Authenticated
@@ -127,10 +154,14 @@ export const authAPI = {
   sendSMS: (data: any) => api.post('/api/user/send-sms/', data), // Authenticated
 };
 
-// Products API - Public access, no authentication required
+// Products API — reads use authenticated `api` (JWT); writes unchanged
 export const productsAPI = {
-  getProducts: (params?: any) => publicApi.get('/api/products/', { params }), // Public
-  getProduct: (id: number) => publicApi.get(`/api/products/${id}/`), // Public
+  getProducts: (params?: Record<string, unknown>) =>
+    api.get('/api/products/', { params }).then((res) => ({
+      ...res,
+      data: extractListData<Product>(res.data),
+    })),
+  getProduct: (id: number) => api.get(`/api/products/${id}/`),
   createProduct: (data: FormData) => api.post('/api/products/', data, { // Authenticated
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
@@ -138,7 +169,11 @@ export const productsAPI = {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
   deleteProduct: (id: number) => api.delete(`/api/products/${id}/`), // Authenticated
-  getCategories: () => publicApi.get('/api/products/categories/'), // Public
+  getCategories: () =>
+    api.get('/api/products/categories/').then((res) => ({
+      ...res,
+      data: extractListData<ProductCategory>(res.data),
+    })),
 };
 
 // Cart API - All endpoints require authentication

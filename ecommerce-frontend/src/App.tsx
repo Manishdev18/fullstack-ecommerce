@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { ToastContainer } from 'react-toastify';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { AuthProvider } from './contexts/AuthContext';
@@ -42,24 +43,61 @@ const queryClient = new QueryClient({
   },
 });
 
+const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
+
 function App() {
-  return (
+  const appTree = (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CartProvider>
           <Router>
-            <div className="min-h-screen flex flex-col bg-gray-50">
+            <div className="min-h-screen flex flex-col bg-piora-paper">
               <Navbar />
               <main className="flex-grow">
                 <Routes>
-                  {/* Public Routes */}
-                  <Route path="/" element={<Home />} />
+                  {/* Public */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/products/:id" element={<ProductDetail />} />
-                  <Route path="/categories" element={<Categories />} />
-                  <Route path="/categories/:id" element={<CategoryProducts />} />
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <Home />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/products"
+                    element={
+                      <ProtectedRoute>
+                        <Products />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/products/:id"
+                    element={
+                      <ProtectedRoute>
+                        <ProductDetail />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/categories"
+                    element={
+                      <ProtectedRoute>
+                        <Categories />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/categories/:id"
+                    element={
+                      <ProtectedRoute>
+                        <CategoryProducts />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/payment/success" element={<PaymentSuccess />} />
                   <Route path="/payment/cancel" element={<PaymentCancel />} />
@@ -120,6 +158,12 @@ function App() {
         </CartProvider>
       </AuthProvider>
     </QueryClientProvider>
+  );
+
+  return googleClientId ? (
+    <GoogleOAuthProvider clientId={googleClientId}>{appTree}</GoogleOAuthProvider>
+  ) : (
+    appTree
   );
 }
 

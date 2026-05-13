@@ -1,11 +1,13 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { Seo as PageSeo } from '../seo/Seo';
 
 const OrderDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <PageSeo title="Order" noindex canonicalPath={id ? `/orders/${id}` : '/orders'} />
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Order Detail</h1>
         <p className="text-gray-600">Order ID: {id}</p>

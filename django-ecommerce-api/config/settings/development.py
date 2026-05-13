@@ -1,14 +1,10 @@
 import os
 
 from .base import *
+from .database_from_env import build_databases
 
-# Override database settings for development - use SQLite instead of PostgreSQL
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# PostgreSQL: set DATABASE_URL (e.g. Neon) or DB_* in .env — see .env.example
+DATABASES = build_databases()
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "../", "mediafiles")

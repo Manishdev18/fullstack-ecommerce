@@ -25,6 +25,7 @@ MANIFEST
 venv/
 env/
 ENV/
+myenv/
 env.bak/
 venv.bak/
 ecom_env/
@@ -129,4 +130,43 @@ jspm_packages/
 .dynamodb/
 
 # TernJS port file
-.tern-port 
+.tern-port
+
+# ------------------------------------------------------------------------------
+# Monorepo: frontend (Create React App / react-scripts)
+# ------------------------------------------------------------------------------
+# Webpack, ESLint, babel-loader, etc. (often under node_modules; list explicitly
+# in case paths were ever tracked or for non-standard installs)
+**/node_modules/.cache/
+
+# TypeScript incremental / project references
+*.tsbuildinfo
+
+# ------------------------------------------------------------------------------
+# Monorepo: Python tooling & test artifacts
+# ------------------------------------------------------------------------------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyright/
+htmlcov/
+.tox/
+.hypothesis/
+celerybeat-schedule
+celerybeat-schedule.*
+
+# ------------------------------------------------------------------------------
+# Local deploy / hosting metadata (regenerate on each machine)
+# ------------------------------------------------------------------------------
+.vercel/
+.netlify/
+
+# ------------------------------------------------------------------------------
+# OS / archives / misc
+# ------------------------------------------------------------------------------
+__MACOSX/
+*.orig
+*.rej
+
+# Local Redis dump (if you run Redis beside the app)
+dump.rdb

@@ -2,6 +2,7 @@ import React from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import { Seo } from '../seo/Seo';
 
 const Cart: React.FC = () => {
   const { cartItems, removeFromCart, getCartTotal, getCartCount, loading } = useCart();
@@ -14,6 +15,7 @@ const Cart: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50">
+        <Seo title="Cart" noindex canonicalPath="/cart" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Shopping Cart</h1>
@@ -32,6 +34,7 @@ const Cart: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Seo title="Shopping cart" noindex canonicalPath="/cart" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
         
@@ -58,7 +61,7 @@ const Cart: React.FC = () => {
                 {getCartCount()} item{getCartCount() !== 1 ? 's' : ''} in cart
               </p>
               <p className="text-2xl font-bold text-gray-900 mb-8">
-                Total: ${getCartTotal().toFixed(2)}
+                Total: NPR {getCartTotal().toFixed(2)}
               </p>
               <div className="space-y-4">
                 {cartItems.map((item) => (
@@ -74,8 +77,8 @@ const Cart: React.FC = () => {
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">{item.product.name}</h3>
                         <p className="text-gray-600">Quantity: {item.quantity}</p>
-                        <p className="text-gray-600">Price: ${item.product.price}</p>
-                        <p className="text-gray-800 font-medium">Total: ${item.total_price.toFixed(2)}</p>
+                                        <p className="text-gray-600">Price: NPR {item.product.price}</p>
+                <p className="text-gray-800 font-medium">Total: NPR {item.total_price.toFixed(2)}</p>
                       </div>
                     </div>
                     <button

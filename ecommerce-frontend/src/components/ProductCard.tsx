@@ -2,25 +2,23 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../types';
 import { useCart } from '../contexts/CartContext';
-import { useAuth } from '../contexts/AuthContext';
 import { ShoppingCartIcon } from '@heroicons/react/24/outline';
 
 interface ProductCardProps {
   product: Product;
 }
 
+const PLACEHOLDER =
+  'https://via.placeholder.com/400x300/F4EFE4/1B3D2F?text=';
+
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
   const [isAdding, setIsAdding] = useState(false);
+
+  const fallbackSrc = `${PLACEHOLDER}${encodeURIComponent(product.name)}`;
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
-    
-    if (!isAuthenticated) {
-      return;
-    }
-    
     setIsAdding(true);
     try {
       await addToCart(product);
@@ -30,56 +28,58 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden">
-      <Link to={`/products/${product.id}`}>
-        <div className="aspect-w-1 aspect-h-1 w-full">
+    <div className="group overflow-hidden rounded-2xl border border-piora-border bg-piora-cream shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <Link to={`/products/${product.id}`} className="block">
+        <div className="aspect-[4/3] w-full overflow-hidden bg-white">
           <img
-            src={product.image || '/placeholder-image.png'}
+            src={product.image || fallbackSrc}
             alt={product.name}
-            className="w-full h-48 object-cover object-center group-hover:opacity-75"
+            className="h-full w-full object-cover object-center transition group-hover:opacity-95"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = fallbackSrc;
+            }}
           />
         </div>
       </Link>
-      
-      <div className="p-4">
+
+      <div className="border-t border-piora-border/60 p-4">
         <Link to={`/products/${product.id}`}>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600">
+          <h3 className="text-lg font-semibold text-piora-ink transition group-hover:text-piora-leaf">
             {product.name}
           </h3>
+          {product.local_name ? <p className="mt-0.5 text-sm text-piora-forest/75">{product.local_name}</p> : null}
         </Link>
-        
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-          {product.desc}
-        </p>
-        
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-2xl font-bold text-gray-900">
-              ${parseFloat(product.price).toFixed(2)}
+
+        <p className="mt-2 line-clamp-2 text-sm text-piora-forest/80">{product.desc}</p>
+
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <span className="inline-flex items-baseline rounded-full bg-piora-amber/35 px-3 py-1 ring-1 ring-piora-amber/50">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-piora-ink/70">MRP</span>
+              <span className="ml-1.5 font-display text-xl font-bold text-piora-ink">
+                NPR {parseFloat(product.price).toFixed(2)}
+              </span>
             </span>
-            <span className="text-sm text-gray-500">
+            <p className="mt-1 text-xs text-piora-forest/65">
               {product.quantity > 0 ? `${product.quantity} in stock` : 'Out of stock'}
-            </span>
+            </p>
           </div>
-          
+
           <button
+            type="button"
             onClick={handleAddToCart}
-            disabled={product.quantity === 0 || isAdding || !isAuthenticated}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center space-x-2"
+            disabled={product.quantity === 0 || isAdding}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-piora-forest px-4 py-2 text-sm font-semibold text-white transition hover:bg-piora-leaf disabled:cursor-not-allowed disabled:bg-piora-border disabled:text-piora-ink/50"
           >
             <ShoppingCartIcon className="h-5 w-5" />
-            <span>
-              {isAdding ? 'Adding...' : !isAuthenticated ? 'Login to Buy' : 'Add to Cart'}
-            </span>
+            <span>{isAdding ? 'Adding…' : 'Add to cart'}</span>
           </button>
         </div>
-        
-        <div className="mt-2 text-xs text-gray-500">
-          Category: {product.category.name}
-        </div>
+
+        <p className="mt-3 text-xs text-piora-forest/55">Category: {product.category.name}</p>
       </div>
     </div>
   );
 };
 
-export default ProductCard; 
+export default ProductCard;

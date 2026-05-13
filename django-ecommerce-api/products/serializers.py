@@ -24,7 +24,7 @@ class ProductCategoryWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductCategory
-        fields = ("name", "icon")
+        fields = ("name", "icon", "parent")
 
     def create(self, validated_data):
         icon_path = validated_data.pop('icon', None)
@@ -55,12 +55,24 @@ class ProductReadSerializer(serializers.ModelSerializer):
     """
 
     seller = serializers.CharField(source="seller.get_full_name", read_only=True)
-    category = serializers.CharField(source="category.name", read_only=True)
+    category = ProductCategoryReadSerializer(read_only=True)
     image = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = "__all__"
+        fields = (
+            "id",
+            "seller",
+            "category",
+            "name",
+            "local_name",
+            "desc",
+            "image",
+            "price",
+            "quantity",
+            "created_at",
+            "updated_at",
+        )
     
     def get_image(self, obj):
         """
@@ -94,6 +106,7 @@ class ProductWriteSerializer(serializers.ModelSerializer):
             "seller",
             "category",
             "name",
+            "local_name",
             "desc",
             "image",
             "price",

@@ -15,8 +15,6 @@ from django.urls import include, path, re_path
 from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from users.views import GoogleLogin
-
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/user/", include("users.urls", namespace="users")),
@@ -43,7 +41,6 @@ urlpatterns = [
         TemplateView.as_view(),
         name="account_email_verification_sent",
     ),
-    path("user/login/google/", GoogleLogin.as_view(), name="google_login"),
     path("password/reset/", PasswordResetView.as_view(), name="rest_password_reset"),
     path(
         "password/reset/confirm/<str:uidb64>/<str:token>",

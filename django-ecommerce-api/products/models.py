@@ -14,8 +14,20 @@ def product_image_path(instance, filename):
 
 
 class ProductCategory(models.Model):
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+        verbose_name=_("Parent category"),
+    )
     name = models.CharField(_("Category name"), max_length=100)
-    icon = models.ImageField(upload_to=category_image_path)
+    icon = models.ImageField(
+        upload_to=category_image_path,
+        blank=True,
+        null=True,
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -23,14 +35,28 @@ class ProductCategory(models.Model):
     class Meta:
         verbose_name = _("Product Category")
         verbose_name_plural = _("Product Categories")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("name",),
+                condition=models.Q(parent__isnull=True),
+                name="products_category_unique_root_name",
+            ),
+            models.UniqueConstraint(
+                fields=("parent", "name"),
+                condition=models.Q(parent__isnull=False),
+                name="products_category_unique_child_name",
+            ),
+        ]
 
     def __str__(self):
+        if self.parent_id:
+            return f"{self.parent.name} › {self.name}"
         return self.name
 
 
 
 def get_default_product_category():
-    return ProductCategory.objects.get_or_create(name="Others")[0]
+    return ProductCategory.objects.get_or_create(name="Others", parent=None)[0]
 
 
 class Product(models.Model):
@@ -41,6 +67,13 @@ class Product(models.Model):
         on_delete=models.SET(get_default_product_category),
     )
     name = models.CharField(max_length=200)
+    local_name = models.CharField(
+        _("Local name"),
+        max_length=200,
+        blank=True,
+        default="",
+        help_text=_("Nepali or other local-language name (e.g. Badam, Kaju)."),
+    )
     desc = models.TextField(_("Description"), blank=True)
     image = models.ImageField(upload_to=product_image_path)
     price = models.DecimalField(decimal_places=2, max_digits=10)

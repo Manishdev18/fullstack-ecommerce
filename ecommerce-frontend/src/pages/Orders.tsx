@@ -1,8 +1,10 @@
 import React from 'react';
+import { Seo as PageSeo } from '../seo/Seo';
 
 const Orders: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <PageSeo title="Orders" noindex canonicalPath="/orders" />
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Orders</h1>
         <p className="text-gray-500">This page is under construction</p>

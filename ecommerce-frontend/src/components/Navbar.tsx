@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
-import { 
-  ShoppingCartIcon, 
-  UserIcon, 
-  Bars3Icon, 
+import {
+  ShoppingCartIcon,
+  UserIcon,
+  Bars3Icon,
   XMarkIcon,
-  MagnifyingGlassIcon 
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 
 const Navbar: React.FC = () => {
@@ -39,13 +39,14 @@ const Navbar: React.FC = () => {
   const cartCount = getCartCount();
 
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50">
+    <nav className="sticky top-0 z-50 border-b border-piora-border/80 bg-piora-cream shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700">
-              EcomStore
+            <Link to="/" className="flex items-center space-x-2 text-2xl font-bold text-piora-forest hover:text-piora-leaf">
+              <span>🌾</span>
+              <span className="font-display tracking-tight">PiOra</span>
             </Link>
           </div>
 
@@ -57,30 +58,30 @@ const Navbar: React.FC = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search products..."
-                  className="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Search products…"
+                  className="w-full rounded-lg border border-piora-border bg-white px-4 py-2 pl-10 pr-4 text-piora-ink placeholder:text-piora-forest/40 focus:border-piora-leaf focus:outline-none focus:ring-2 focus:ring-piora-leaf/30"
                 />
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-piora-forest/40" />
               </div>
             </form>
           </div>
 
           {/* Navigation Links (Desktop) */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link to="/" className="text-piora-forest transition-colors hover:text-piora-leaf">
               Home
             </Link>
-            <Link to="/products" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link to="/products" className="text-piora-forest transition-colors hover:text-piora-leaf">
               Products
             </Link>
-            <Link to="/categories" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link to="/categories" className="text-piora-forest transition-colors hover:text-piora-leaf">
               Categories
             </Link>
             
             {/* Cart */}
             <Link 
               to="/cart" 
-              className="relative text-gray-700 hover:text-blue-600 transition-colors"
+              className="relative text-piora-forest transition-colors hover:text-piora-leaf"
               onClick={handleCartClick}
             >
               <ShoppingCartIcon className="h-6 w-6" />
@@ -96,38 +97,38 @@ const Navbar: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-colors"
+                  className="flex items-center space-x-1 text-piora-forest transition-colors hover:text-piora-leaf"
                 >
                   <UserIcon className="h-6 w-6" />
                   <span className="text-sm">{user?.first_name || 'User'}</span>
                 </button>
                 
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                  <div className="absolute right-0 z-50 mt-2 w-48 rounded-md border border-piora-border bg-white py-1 shadow-lg">
                     <Link
                       to="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-piora-ink hover:bg-piora-cream"
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       Profile
                     </Link>
                     <Link
                       to="/orders"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-piora-ink hover:bg-piora-cream"
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       Orders
                     </Link>
                     <Link
                       to="/my-products"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-piora-ink hover:bg-piora-cream"
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       My Products
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block w-full px-4 py-2 text-left text-sm text-piora-ink hover:bg-piora-cream"
                     >
                       Logout
                     </button>
@@ -138,13 +139,13 @@ const Navbar: React.FC = () => {
               <div className="flex items-center space-x-4">
                 <Link
                   to="/login"
-                  className="text-gray-700 hover:text-blue-600 transition-colors"
+                  className="text-piora-forest transition-colors hover:text-piora-leaf"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="rounded-lg bg-piora-forest px-4 py-2 text-white transition-colors hover:bg-piora-leaf"
                 >
                   Sign Up
                 </Link>
@@ -156,7 +157,7 @@ const Navbar: React.FC = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 hover:text-blue-600"
+              className="text-piora-forest hover:text-piora-leaf"
             >
               {isMenuOpen ? (
                 <XMarkIcon className="h-6 w-6" />
@@ -178,37 +179,37 @@ const Navbar: React.FC = () => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search products..."
-                    className="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Search products…"
+                    className="w-full rounded-lg border border-piora-border bg-white px-4 py-2 pl-10 pr-4 text-piora-ink placeholder:text-piora-forest/40 focus:border-piora-leaf focus:outline-none focus:ring-2 focus:ring-piora-leaf/30"
                   />
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-piora-forest/40" />
                 </div>
               </form>
 
               <Link
                 to="/"
-                className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                className="block px-3 py-2 text-piora-forest hover:text-piora-leaf"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Home
               </Link>
               <Link
                 to="/products"
-                className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                className="block px-3 py-2 text-piora-forest hover:text-piora-leaf"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Products
               </Link>
               <Link
                 to="/categories"
-                className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                className="block px-3 py-2 text-piora-forest hover:text-piora-leaf"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Categories
               </Link>
               <Link
                 to="/cart"
-                className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                className="block px-3 py-2 text-piora-forest hover:text-piora-leaf"
                 onClick={() => {
                   setIsMenuOpen(false);
                   handleCartClick();
@@ -221,28 +222,28 @@ const Navbar: React.FC = () => {
                 <>
                   <Link
                     to="/profile"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                    className="block px-3 py-2 text-piora-forest hover:text-piora-leaf"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Profile
                   </Link>
                   <Link
                     to="/orders"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                    className="block px-3 py-2 text-piora-forest hover:text-piora-leaf"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Orders
                   </Link>
                   <Link
                     to="/my-products"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                    className="block px-3 py-2 text-piora-forest hover:text-piora-leaf"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     My Products
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-3 py-2 text-gray-700 hover:text-blue-600"
+                    className="block w-full px-3 py-2 text-left text-piora-forest hover:text-piora-leaf"
                   >
                     Logout
                   </button>
@@ -251,14 +252,14 @@ const Navbar: React.FC = () => {
                 <>
                   <Link
                     to="/login"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                    className="block px-3 py-2 text-piora-forest hover:text-piora-leaf"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Login
                   </Link>
                   <Link
                     to="/register"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                    className="block px-3 py-2 text-piora-forest hover:text-piora-leaf"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Sign Up

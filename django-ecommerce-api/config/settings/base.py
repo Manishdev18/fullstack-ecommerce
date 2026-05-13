@@ -203,6 +203,12 @@ ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
+# Google Sign-In (ID token verification); same client ID as frontend REACT_APP_GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID", default="")
+
+# Allow Google (allauth social) sign-in without duplicating mandatory email verification
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+
 
 # Email - Temporarily commented out due to SMTP starttls() error
 # EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
